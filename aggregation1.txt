@@ -16,4 +16,56 @@ db.chats.aggregate([
     }
 ])
 
-// 2. For a particular Chat room, load all messages along with user details
+// 2. For a particular Chat room, load all messages along with sender details
+db.chats.aggregate([
+    {
+        $match: {_id: ObjectId("636ddfe1c6f19966ccb2d14a")}
+    },
+    /* To retrieve all messages, perform $lookup on messages collection */
+    {
+        $lookup: {
+            from: "messages",
+            localField: "_id",
+            foreignField: "chat",
+            as: "messages",
+            /* For messages.sender info, perform $lookup on users collection */
+            pipeline: [
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'sender',
+                        foreignField: '_id',
+                        as: 'sender',
+                        pipeline: [
+                            /* Necessary sender fields */
+                            {
+                                $project: {
+                                    _id: 1,
+                                    name: 1,
+                                    email: 1
+                                }
+                            }
+                        ]                        
+                    },                    
+                },
+                /* Necessary message fields */
+                {
+                    $project: { 
+                        sender: 1,
+                        content: 1,
+                        updatedAt: 1
+                    }
+                }
+            ]
+        }
+    },
+    /* Necessary chat fields */
+    {
+        $project: {
+            chatName: 1,
+            isGroupChat: 1,
+            updatedAt: 1,
+            messages: 1
+        }
+    }
+])
