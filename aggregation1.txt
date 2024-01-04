@@ -1,0 +1,19 @@
+// 1. Chat has many Users. Join these two collections and retrieve only necessary user fields (id, name, email).
+db.chats.aggregate([
+    {
+        $match: {_id: ObjectId("635fc00bbb7f0d8ca35b5d8f")}
+    },
+    {
+        $lookup: {
+            from: "users",
+            localField: "users",
+            foreignField: "_id",
+            as: "users",
+            pipeline: [
+                { $project: {_id: 1, name: 1, email: 1} }
+            ] 
+        }
+    }
+])
+
+// 2. For a particular Chat room, load all messages along with user details
